@@ -44,13 +44,13 @@ pub enum Scope {
 }
 
 impl Claims {
-    pub fn new(user: Uuid, scopes: impl IntoIterator<Item = Scope>, age: u64) -> Self {
+    pub fn new(user: Uuid, scopes: impl IntoIterator<Item = Scope>, audience: impl IntoIterator<Item = Service>, age: u64) -> Self {
         let now = get_current_timestamp();
         Claims {
             sub: user,
             exp: now + age,
             iat: now,
-            aud: HashSet::from_iter([Service::StarHavenPlatform, Service::StarHavenSccache]),
+            aud: HashSet::from_iter(audience),
             iss: Service::StarHavenPlatform,
             scopes: HashSet::from_iter(scopes),
         }

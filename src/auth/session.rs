@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::auth::{
     cookie::{get_cookie, set_cookie},
-    token::{Claims, Scope},
+    token::{Claims, Scope, Service},
 };
 
 /// 30 days
@@ -38,7 +38,7 @@ impl Session {
 
     // TODO: take a db User, determine uuid and scopes from that
     pub fn login(&mut self) -> Result<(), jsonwebtoken::errors::Error> {
-        let claims = Claims::new(Uuid::new_v4(), [], SESSION_LENGTH_SECONDS);
+        let claims = Claims::new(Uuid::new_v4(), [], [Service::StarHavenPlatform], SESSION_LENGTH_SECONDS);
         set_cookie("session", &claims.encode()?, SESSION_LENGTH_SECONDS);
         self.claims = Some(claims);
         Ok(())
