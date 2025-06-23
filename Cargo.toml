@@ -1,0 +1,65 @@
+[package]
+authors = ["Alex Bates <alex@bates64.com>"]
+edition = "2021"
+# If you change the name here, you must also do it in flake.nix (and run `cargo generate-lockfile` afterwards)
+name = "star-haven-platform"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+axum = { version = "0.8", features = ["json", "tokio"], optional = true }
+axum-macros = { version = "0.5", optional = true }
+cfg-if = "1"
+console_error_panic_hook = { version = "0.1", optional = true }
+console_log = { version = "1" }
+http = { version = "1", optional = true }
+leptos = { version = "0.8" }
+leptos_axum = { version = "0.8", optional = true }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8" }
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"], optional = true }
+wasm-bindgen = { version = "=0.2.100", optional = true }
+jsonwebtoken = { version = "9", optional = true }
+uuid = { version = "1", features = ["serde", "v4"] }
+femme = { version = "2", optional = true }
+
+[features]
+hydrate = [
+    "leptos/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+    "uuid/js",
+]
+ssr = [
+    "dep:axum-macros",
+    "dep:axum",
+    "dep:http",
+    "dep:leptos_axum",
+    "dep:tokio",
+    "dep:jsonwebtoken",
+    "dep:femme",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptos/ssr",
+]
+
+# Defines a size-optimized profile for the WASM bundle in release mode
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[package.metadata.leptos]
+site-addr = "127.0.0.1:3000"
+tailwind-input-file = "css/input.css"
+assets-dir = "assets"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
+lib-profile-release = "wasm-release"
