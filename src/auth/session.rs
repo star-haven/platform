@@ -1,5 +1,7 @@
+use sea_orm::EntityTrait;
 use uuid::Uuid;
 
+use crate::prelude::*;
 use crate::auth::{
     cookie::{get_cookie, set_cookie},
     token::{Claims, Scope, Service},
@@ -23,9 +25,12 @@ impl Session {
         }
     }
 
-    /// Fetch the session user from the database. `None`` if not logged in.
-    pub async fn user(&self) -> Option<()> {
-        todo!();
+    /// Fetch the session user from the database.
+    pub async fn user(&self) -> Result<Option<User>, sea_orm::error::DbErr> {
+        let Some(claims) = &self.claims else {
+            return Ok(None);
+        };
+        Users::find_by_id(claims.sub).one(&db()).await
     }
 
     pub fn uuid(&self) -> Option<Uuid> {
@@ -36,9 +41,8 @@ impl Session {
         self.claims.is_some()
     }
 
-    // TODO: take a db User, determine uuid and scopes from that
-    pub fn login(&mut self) -> Result<(), jsonwebtoken::errors::Error> {
-        let claims = Claims::new(Uuid::new_v4(), [], [Service::StarHavenPlatform], SESSION_LENGTH_SECONDS);
+    pub fn login(&mut self, user: &User) -> Result<(), jsonwebtoken::errors::Error> {
+        let claims = Claims::new(user.id, [], [Service::StarHavenPlatform], SESSION_LENGTH_SECONDS);
         set_cookie("session", &claims.encode()?, SESSION_LENGTH_SECONDS);
         self.claims = Some(claims);
         Ok(())

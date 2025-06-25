@@ -17,3 +17,7 @@ watch-release:
 test:
     cargo watch -- cargo leptos test
 
+# Migrate database and generate code for db entities
+migrate:
+    sea-orm-cli migrate
+    sea-orm-cli generate entity -o entity/src --with-serde both --lib --date-time-crate time

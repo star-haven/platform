@@ -1,8 +1,7 @@
-use crate::auth::LoginForm;
-use leptos::prelude::*;
+use crate::prelude::*;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
-    StaticSegment,
+    path,
     components::{Route, Router, Routes},
 };
 
@@ -26,7 +25,6 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 
 #[component]
 pub fn App() -> impl IntoView {
-    // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
     view! {
@@ -35,24 +33,71 @@ pub fn App() -> impl IntoView {
         <Title text="Star Haven" />
 
         <Router>
-            <main>
-                <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HomePage />
-                </Routes>
-            </main>
+            <Routes fallback=|| "Page not found.".into_view()>
+                <Route path=path!("/") view=HomePage />
+                <Route path=path!("/auth") view=crate::auth::AuthPage />
+            </Routes>
         </Router>
     }
 }
 
 #[component]
 fn HomePage() -> impl IntoView {
-    // Creates a reactive value to update the button
-    let count = RwSignal::new(0);
-    let on_click = move |_| *count.write() += 1;
+    view! {
+        <PageShell>
+            "Hello, world!"
+        </PageShell>
+    }
+}
+
+#[server]
+async fn get_username() -> Result<Option<String>, ServerFnError> {
+    Ok(session().user().await?.map(|user| user.username))
+}
+
+#[component]
+pub fn PageShell(children: Children) -> impl IntoView {
+    view! {
+        <div>
+            <SiteNav />
+            <main>
+                {children()}
+            </main>
+            <footer>
+                <p>
+                    "I am the footer"
+                </p>
+            </footer>
+        </div>
+    }
+}
+
+#[server]
+async fn get_session_user() -> Result<Option<User>, ServerFnError> {
+    Ok(session().user().await?)
+}
+
+#[component]
+fn SiteNav() -> impl IntoView {
+    let user = OnceResource::new_blocking(get_session_user());
+    let user = move || user.get().expect("user").ok().flatten();
 
     view! {
-        <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
-        <LoginForm />
+        <nav>
+            "Star Haven"
+        
+            <Suspense fallback=|| {}>
+                {move || Suspend::new(async move {
+                    view! {
+                        <Show when=move || user().is_some()>
+                            {move || user().unwrap().username}
+                        </Show>
+                        <Show when=move || user().is_none()>
+                            <a href="/auth">Log in</a>
+                        </Show>
+                    }
+                })}
+            </Suspense>
+        </nav>
     }
 }
