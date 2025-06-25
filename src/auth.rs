@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 use webauthn_rs_proto::{PublicKeyCredential, RequestChallengeResponse, RegisterPublicKeyCredential, CreationChallengeResponse};
+use phosphor_leptos::{Icon, IconWeight, WARNING};
 
 #[cfg(feature = "ssr")]
 mod token;
@@ -22,36 +23,55 @@ async fn is_logged_in() -> Result<bool, ServerFnError> {
     Ok(session().is_logged_in())
 }
 
+#[server]
+async fn user_exists(username: String) -> Result<bool, ServerFnError> {
+    Ok(Users::find()
+        .filter(entity::users::Column::Username.eq(username))
+        .one(&db())
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .is_some())
+}
+
 #[component]
 pub fn AuthPage() -> impl IntoView {
     let is_logged_in = OnceResource::new_blocking(is_logged_in());
 
     view! {
-        <PageShell>
-            <Suspense fallback=|| {}>
-                {move || Suspend::new(async move {
-                    view! {
-                        <Show when={move || matches!(is_logged_in.get(), Some(Ok(false)))} fallback=|| {
+        <Shell>
+            <div class="flex items-center justify-center min-h-screen">
+                <div class="max-w-sm w-full p-8 lg:p-16 bg-stone-100 crumpled-paper shadow-md">
+                    <h1 class="text-4xl font-black text-stone-600 mb-5">"welcome!!"</h1>
+                    <p class="text-stone-400 text-sm mb-7">
+                        "enter your username to sign in or sign up."
+                    </p>
+
+                    <Suspense fallback=|| {}>
+                        {move || Suspend::new(async move {
                             view! {
-                                <p>
-                                    "You are already logged in. To log in again, please log out first."
-                                </p>
-                                <button on:click=move |_| {
-                                    leptos::task::spawn_local(async move {
-                                        logout().await.expect("failed to log out");
-                                        window().location().reload().expect("failed to reload page");
-                                    });
+                                <Show when={move || matches!(is_logged_in.get(), Some(Ok(false)))} fallback=|| {
+                                    view! {
+                                        <p>
+                                            "You are already logged in. To log in again, please log out first."
+                                        </p>
+                                        <button on:click=move |_| {
+                                            spawn_local(async move {
+                                                logout().await.expect("failed to log out");
+                                                window().location().reload().expect("failed to reload page");
+                                            });
+                                        }>
+                                            "sign out"
+                                        </button>
+                                    }
                                 }>
-                                    "Log out"
-                                </button>
+                                    <LoginForm />
+                                </Show>
                             }
-                        }>
-                            <LoginForm />
-                        </Show>
-                    }
-                })}
-            </Suspense>
-        </PageShell>
+                        })}
+                    </Suspense>
+                </div>
+            </div>
+        </Shell>
     }
 }
 
@@ -60,67 +80,63 @@ fn LoginForm() -> impl IntoView {
     let username = RwSignal::new("".to_string());
     let username_error = RwSignal::new(None::<UsernameValidationError>);
 
-    let register: Action<_, Result<()>> = Action::new_local(|username: &String| {
-        let username = username.to_owned();
-        async move {
-            #[cfg(feature = "hydrate")]
-            {
-                let ccr = passkey::start_register(username.clone()).await.map_err(|error| {
-                    log::error!("failed to start passkey registration: {error:?}");
-                    anyhow::anyhow!("Username already taken") // likely problem
-                })?;
-                let c_options: web_sys::CredentialCreationOptions = ccr.into();
-                let promise = window()
-                    .navigator()
-                    .credentials()
-                    .create_with_options(&c_options)
-                    .expect_throw("unable to create promise");
-                let credential = web_sys::PublicKeyCredential::from(JsFuture::from(promise).await.map_err(|error| {
-                    // User probably cancelled the prompt
-                    log::error!("failed to create credential: {error:?}");
-                    anyhow::anyhow!("Failed to create passkey")
-                })?);
-                passkey::finish_register(username, RegisterPublicKeyCredential::from(credential)).await.map_err(|error| {
-                    log::error!("failed to finish passkey registration: {error:?}");
-                    anyhow::anyhow!("Failed to register passkey and/or create user")
-                })?;
-
-                window().location().set_href("/").expect("failed to redirect to home page");
-            }
-            #[cfg(not(feature = "hydrate"))]
-            {
-                let _ = username;
-            }
-            Ok(())
-        }
-    });
-
     let login: Action<_, Result<()>> = Action::new_local(|username: &String| {
         let username = username.to_owned();
         async move {
             #[cfg(feature = "hydrate")]
-            {
-                let (challenge, id) = passkey::start_login(username).await.map_err(|error| {
-                    log::error!("failed to get login challenge: {error:?}");
-                    anyhow::anyhow!("Failed to get login challenge")
-                })?;
-                let c_options: web_sys::CredentialRequestOptions = challenge.into();
-                let promise = window()
-                    .navigator()
-                    .credentials()
-                    .get_with_options(&c_options)
-                    .expect_throw("unable to create promise");
-                let credential = web_sys::PublicKeyCredential::from(JsFuture::from(promise).await.map_err(|error| {
-                    // User probably cancelled the prompt
-                    log::error!("failed to get credential: {error:?}");
-                    anyhow::anyhow!("Failed to get passkey")
-                })?);
-                passkey::finish_login(id, PublicKeyCredential::from(credential)).await.map_err(|error| {
-                    log::error!("failed to finish passkey login: {error:?}");
-                    anyhow::anyhow!("Bad credentials")
-                })?;
+            match user_exists(username.clone()).await {
+                Ok(true) => {
+                    // Login
+                    let (challenge, id) = passkey::start_login(username).await.map_err(|error| {
+                        log::error!("failed to get login challenge: {error:?}");
+                        anyhow::anyhow!("Failed to get login challenge")
+                    })?;
+                    let c_options: web_sys::CredentialRequestOptions = challenge.into();
+                    let promise = window()
+                        .navigator()
+                        .credentials()
+                        .get_with_options(&c_options)
+                        .expect_throw("unable to create promise");
+                    let credential = web_sys::PublicKeyCredential::from(JsFuture::from(promise).await.map_err(|error| {
+                        // User probably cancelled the prompt
+                        log::error!("failed to get credential: {error:?}");
+                        anyhow::anyhow!("Failed to get passkey")
+                    })?);
+                    passkey::finish_login(id, PublicKeyCredential::from(credential)).await.map_err(|error| {
+                        log::error!("failed to finish passkey login: {error:?}");
+                        anyhow::anyhow!("Bad credentials")
+                    })?;
 
-                window().location().set_href("/").expect("failed to redirect to home page");
+                    window().location().set_href("/").expect("failed to redirect to home page");
+                }
+                Ok(false) => {
+                    // Register
+                    let ccr = passkey::start_register(username.clone()).await.map_err(|error| {
+                        log::error!("failed to start passkey registration: {error:?}");
+                        anyhow::anyhow!("Username already taken") // likely problem
+                    })?;
+                    let c_options: web_sys::CredentialCreationOptions = ccr.into();
+                    let promise = window()
+                        .navigator()
+                        .credentials()
+                        .create_with_options(&c_options)
+                        .expect_throw("unable to create promise");
+                    let credential = web_sys::PublicKeyCredential::from(JsFuture::from(promise).await.map_err(|error| {
+                        // User probably cancelled the prompt
+                        log::error!("failed to create credential: {error:?}");
+                        anyhow::anyhow!("Failed to create passkey")
+                    })?);
+                    passkey::finish_register(username, RegisterPublicKeyCredential::from(credential)).await.map_err(|error| {
+                        log::error!("failed to finish passkey registration: {error:?}");
+                        anyhow::anyhow!("Failed to register passkey and/or create user")
+                    })?;
+
+                    window().location().set_href("/").expect("failed to redirect to home page");
+                }
+                Err(error) => {
+                    log::error!("failed to check if user exists: {error:?}");
+                    return Err(anyhow::anyhow!("Failed to check if user exists"));
+                }
             }
             #[cfg(not(feature = "hydrate"))]
             {
@@ -136,7 +152,7 @@ fn LoginForm() -> impl IntoView {
         let controller = web_sys::AbortController::new().expect_throw("failed to create abort controller");
         let signal = controller.signal();
 
-        leptos::task::spawn_local(async move {
+        spawn_local(async move {
             let cma = JsFuture::from(web_sys::PublicKeyCredential::is_conditional_mediation_available())
                 .await
                 .expect_throw("failed to check conditional mediation availability");
@@ -176,44 +192,55 @@ fn LoginForm() -> impl IntoView {
     });
 
     view! {
-        <noscript>Please enable JavaScript to authenticate.</noscript>
+        <noscript>"please enable JavaScript to authenticate."</noscript>
 
-        <input type="text" autocomplete="username webauthn" autofocus bind:value=username on:change={move |_| {
-            if username.get().is_empty() {
-                username_error.set(None);
-            }
-            username_error.set(check_username_validity(&username.get()).err());
-        }} />
-        
-        <Show when={move || username_error.get().is_some()}>
-            <p class="text-red-500">{move || username_error.get().as_ref().unwrap().to_string()}</p>
-        </Show>
+        <div>
+            <input type="text" autocomplete="username webauthn" autofocus maxlength=20 placeholder="username" bind:value=username on:change={move |_| {
+                if username.get().is_empty() {
+                    username_error.set(None);
+                }
+                username_error.set(check_username_validity(&username.get()).err());
+            }} class="border border-stone-200 py-1.5 px-4 rounded-md w-full bg-white text-stone-800 placeholder-stone-400" />
 
-        <button on:click={move |_| { register.dispatch(username.get()); }}>Register</button>
+            <div class="mt-1 text-xs text-red-500 min-h-5 flex items-center gap-1" aria-live="polite">
+                <Show when={move || username_error.get().is_some()}>
+                    <Icon icon=WARNING weight=IconWeight::Fill />
+                </Show>
+                {move || username_error.get().map(|e| e.to_string())}
+            </div>
+        </div>
 
-        <Show when={move || register.value().read().as_ref().is_some_and(|r| r.is_err())}>
-            <p class="text-red-500">{move || register.value().read().as_ref().unwrap().as_ref().unwrap_err().to_string()}</p>
-        </Show>
+        <div class="flex items-center justify-between mt-3">
+            <button
+                class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1.5 px-4 rounded w-full flex items-center justify-center gap-2"
+                on:click={move |_| { login.dispatch(username.get()); }}
+                disabled={move || username.get().is_empty() || username_error.get().is_some()}
+            >
+                <img src="/FIDO_Passkey_mark_A_white.svg" class="w-6 h-6" />
+                "continue with passkey"
+            </button>
+        </div>
 
-        <button on:click={move |_| { login.dispatch(username.get()); }}>Log in</button>
-
-        <Show when={move || login.value().read().as_ref().is_some_and(|r| r.is_err())}>
-            <p class="text-red-500">{move || login.value().read().as_ref().unwrap().as_ref().unwrap_err().to_string()}</p>
-        </Show>
+        <div class="mt-1 text-xs text-red-500 min-h-5 flex items-center gap-1" aria-live="polite">
+            <Show when={move || login.value().read().as_ref().is_some_and(|r| r.is_err())}>
+                <Icon icon=WARNING weight=IconWeight::Fill />
+            </Show>
+            {move || login.value().read().as_ref().map(|r| r.as_ref().err().map(|e| e.to_string()))}
+        </div>
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
 enum UsernameValidationError {
-    #[error("Username is too short, must be at least 4 characters")]
+    #[error("too short, must be at least 4 characters")]
     TooShort,
-    #[error("Username is too long, must be at most 20 characters")]
+    #[error("too long, must be at most 20 characters")]
     TooLong,
-    #[error("Username contains invalid characters, must alphanumeric, underscores, and hyphens only")]
+    #[error("letters, numbers, underscores, and hyphens only")]
     InvalidCharacters,
-    #[error("Username does not start and end with an alphanumeric character")]
+    #[error("must start and end with a letter or number")]
     InvalidStartOrEnd,
-    #[error("This specific username is not allowed")]
+    #[error("this username is not allowed")]
     Banned,
 }
 

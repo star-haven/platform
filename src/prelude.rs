@@ -1,6 +1,7 @@
 use cfg_if::cfg_if;
 
 pub use leptos::prelude::*;
+pub use leptos::task::spawn_local;
 pub use thiserror::Error;
 pub use anyhow::{Result, Error};
 pub use uuid::Uuid;
@@ -9,7 +10,7 @@ pub use serde::{Deserialize, Serialize};
 pub use entity::prelude::*;
 pub use entity::users::Model as User;
 
-pub use crate::app::PageShell;
+pub use crate::shell::Shell;
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {

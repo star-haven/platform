@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
+use leptos_meta::{MetaTags, Stylesheet, Title, Link, provide_meta_context};
 use leptos_router::{
     path,
     components::{Route, Router, Routes},
@@ -30,6 +30,10 @@ pub fn App() -> impl IntoView {
     view! {
         <Stylesheet id="leptos" href="/pkg/star-haven-platform.css" />
 
+        <Link rel="preconnect" href="https://fonts.googleapis.com" />
+        <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+        <Stylesheet href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap" />
+
         <Title text="Star Haven" />
 
         <Router>
@@ -44,60 +48,8 @@ pub fn App() -> impl IntoView {
 #[component]
 fn HomePage() -> impl IntoView {
     view! {
-        <PageShell>
+        <Shell>
             "Hello, world!"
-        </PageShell>
-    }
-}
-
-#[server]
-async fn get_username() -> Result<Option<String>, ServerFnError> {
-    Ok(session().user().await?.map(|user| user.username))
-}
-
-#[component]
-pub fn PageShell(children: Children) -> impl IntoView {
-    view! {
-        <div>
-            <SiteNav />
-            <main>
-                {children()}
-            </main>
-            <footer>
-                <p>
-                    "I am the footer"
-                </p>
-            </footer>
-        </div>
-    }
-}
-
-#[server]
-async fn get_session_user() -> Result<Option<User>, ServerFnError> {
-    Ok(session().user().await?)
-}
-
-#[component]
-fn SiteNav() -> impl IntoView {
-    let user = OnceResource::new_blocking(get_session_user());
-    let user = move || user.get().expect("user").ok().flatten();
-
-    view! {
-        <nav>
-            "Star Haven"
-        
-            <Suspense fallback=|| {}>
-                {move || Suspend::new(async move {
-                    view! {
-                        <Show when=move || user().is_some()>
-                            {move || user().unwrap().username}
-                        </Show>
-                        <Show when=move || user().is_none()>
-                            <a href="/auth">Log in</a>
-                        </Show>
-                    }
-                })}
-            </Suspense>
-        </nav>
+        </Shell>
     }
 }
