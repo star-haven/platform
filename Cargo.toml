@@ -1,3 +1,5 @@
+cargo-features = ["codegen-backend"]
+
 [package]
 authors = ["Alex Bates <alex@bates64.com>"]
 edition = "2021"
@@ -83,7 +85,6 @@ ssr = [
     "leptos/ssr",
 ]
 
-# Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]
 inherits = "release"
 opt-level = 'z'
@@ -91,10 +92,28 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
+[profile.dev]
+opt-level = 0
+debug = 1
+incremental = true
+
+[profile.server-dev]
+inherits = "dev"
+codegen-backend = "cranelift"
+
+# [profile.dev.package."*"]
+# opt-level = 3
+# debug = 2
+
+# # For build scripts and proc-macros.
+# [profile.dev.build-override]
+# opt-level = 3
+
 [package.metadata.leptos]
 site-addr = "127.0.0.1:3000"
 tailwind-input-file = "css/input.css"
 assets-dir = "assets"
 bin-features = ["ssr"]
+bin-profile-dev = "server-dev"
 lib-features = ["hydrate"]
 lib-profile-release = "wasm-release"

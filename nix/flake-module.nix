@@ -44,6 +44,7 @@ in
                 "rust-src"
                 "rust-analyzer"
                 "clippy"
+                "rustc-codegen-cranelift-preview"
               ];
             };
           };
@@ -118,7 +119,9 @@ in
               });
             };
 
-            rustDevShell = pkgs.mkShell {
+            rustDevShell = pkgs.mkShell.override {
+              stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
+            } {
               shellHook = ''
                 # For rust-analyzer 'hover' tooltips to work.
                 export RUST_SRC_PATH="${rustToolchain}/lib/rustlib/src/rust/library";

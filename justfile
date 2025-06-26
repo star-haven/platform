@@ -7,7 +7,7 @@ fmt:
 
 # Run the project locally
 watch $RUST_BACKTRACE="1":
-    cargo leptos watch
+    cargo leptos watch --hot-reload
 
 # Run cargo in release mode (prints red panic)
 watch-release:
