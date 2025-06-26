@@ -280,8 +280,8 @@ pub mod passkey {
     cfg_if! {
         if #[cfg(feature = "ssr")] {
             use std::collections::HashMap;
+            use std::sync::LazyLock;
             use tokio::sync::RwLock;
-            use once_cell::sync::Lazy;
 
             use webauthn_rs::prelude::*;
 
@@ -297,12 +297,12 @@ pub mod passkey {
             }
 
             /// Map of usernames to future user uuids / passkey registration challenges. Temporary state held between start_register and finish_register calls.
-            static REGISTER_CHALLENGES: Lazy<RwLock<HashMap<String, (Uuid, PasskeyRegistration)>>> = Lazy::new(|| RwLock::new(HashMap::new()));
+            static REGISTER_CHALLENGES: LazyLock<RwLock<HashMap<String, (Uuid, PasskeyRegistration)>>> = LazyLock::new(|| RwLock::new(HashMap::new()));
 
             /// Map of random id to passkey authentication state
-            static LOGIN_CHALLENGES: Lazy<RwLock<HashMap<Uuid, PasskeyAuthentication>>> = Lazy::new(|| RwLock::new(HashMap::new()));
+            static LOGIN_CHALLENGES: LazyLock<RwLock<HashMap<Uuid, PasskeyAuthentication>>> = LazyLock::new(|| RwLock::new(HashMap::new()));
 
-            static DISCOVERABLE_LOGIN_CHALLENGES: Lazy<RwLock<HashMap<Uuid, DiscoverableAuthentication>>> = Lazy::new(|| RwLock::new(HashMap::new()));
+            static DISCOVERABLE_LOGIN_CHALLENGES: LazyLock<RwLock<HashMap<Uuid, DiscoverableAuthentication>>> = LazyLock::new(|| RwLock::new(HashMap::new()));
         }
     }
 

@@ -39,7 +39,6 @@ webauthn-rs = { version = "0.5", features = [ "conditional-ui" ], optional = tru
 webauthn-rs-proto = "0.5"
 anyhow = { version = "1", features = ["std"] }
 thiserror = "2"
-once_cell = "1.21.3"
 js-sys = { version = "0.3", optional = true }
 phosphor-leptos = "0.8"
 

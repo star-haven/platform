@@ -3889,7 +3889,6 @@ dependencies = [
  "leptos_router",
  "log",
  "migration",
- "once_cell",
  "phosphor-leptos",
  "sea-orm",
  "serde",
