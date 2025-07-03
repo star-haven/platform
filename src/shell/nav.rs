@@ -8,12 +8,29 @@ pub fn Nav() -> impl IntoView {
         <div class="nav-tear-shadow w-80 h-screen" />
         <nav class="sticky top-0 w-80 h-screen bg-stone-100 crumpled-paper nav-tear-mask p-4 pr-12">
             <ul class="flex flex-col gap-2 h-full">
-                <li><a href="/" class="text-lg font-bold">"Star Haven"</a></li>
+                <NavItem href="/">"Star Haven"</NavItem>
+                <NavItem href="/browse">"browse"</NavItem>
+                <NavItem href="https://docs.starhaven.dev/">"create"</NavItem>
+                <NavItem href="https://discord.com/invite/star-haven">"community"</NavItem>
+                <NavItem href="/about">"about"</NavItem>
                 <li class="mt-auto">
                     <SessionStatusBar />
                 </li>
             </ul>
         </nav>
+    }
+}
+
+#[component]
+pub fn NavItem(href: &'static str, children: Children) -> impl IntoView {
+    let location = leptos_router::hooks::use_location();
+    let is_current = move || location.pathname.get().starts_with(href);
+    view! {
+        <li>
+            <a href={href} class="text-md text-stone-600 flex items-center px-3 py-2 rounded" class=(["bg-stone-200", "!text-stone-700"], is_current)>
+                {children()}
+            </a>
+        </li>
     }
 }
 
