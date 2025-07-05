@@ -2,5 +2,9 @@
 
 pub mod prelude;
 
+pub mod games;
+pub mod mod_authors;
+pub mod mod_releases;
+pub mod mods;
 pub mod passkeys;
 pub mod users;

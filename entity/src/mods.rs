@@ -4,23 +4,38 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "users")]
+#[sea_orm(table_name = "mods")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    pub created_at: TimeDateTime,
     #[sea_orm(unique)]
-    pub username: String,
-    #[sea_orm(unique)]
-    pub username_normalized: String,
+    pub slug: String,
+    pub name: String,
+    pub description: String,
+    pub game_id: Uuid,
+    pub published_at: Option<TimeDateTimeWithTimeZone>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::games::Entity",
+        from = "Column::GameId",
+        to = "super::games::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Games,
     #[sea_orm(has_many = "super::mod_authors::Entity")]
     ModAuthors,
-    #[sea_orm(has_many = "super::passkeys::Entity")]
-    Passkeys,
+    #[sea_orm(has_many = "super::mod_releases::Entity")]
+    ModReleases,
+}
+
+impl Related<super::games::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Games.def()
+    }
 }
 
 impl Related<super::mod_authors::Entity> for Entity {
@@ -29,9 +44,9 @@ impl Related<super::mod_authors::Entity> for Entity {
     }
 }
 
-impl Related<super::passkeys::Entity> for Entity {
+impl Related<super::mod_releases::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Passkeys.def()
+        Relation::ModReleases.def()
     }
 }
 
