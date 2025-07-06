@@ -109,13 +109,6 @@ fn to_slug(name: &str) -> String {
 pub fn NewModPage() -> impl IntoView {
     let new_mod = ServerAction::<NewMod>::new();
 
-    // Redirect on form submit
-    Effect::new(move |_| {
-        if let Some(Ok(Mod { slug, .. })) = new_mod.value().get() {
-            window().location().set_href(&format!("/mod/{slug}")).expect("failed to redirect");
-        }
-    });
-
     let name = RwSignal::new("".to_string());
     let default_slug = move || to_slug(&name.get());
 
@@ -247,6 +240,7 @@ async fn new_mod(
             Ok(new_mod)
         })
     }).await?;
+    leptos_axum::redirect(&format!("/mod/{}", new_mod.slug));
     Ok(new_mod)
 }
 
