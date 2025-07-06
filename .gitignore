@@ -4,3 +4,4 @@
 /dist
 /PG_DATA
 .direnv
+/rustc-ice-*

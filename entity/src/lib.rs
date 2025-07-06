@@ -4,7 +4,9 @@ pub mod prelude;
 
 pub mod games;
 pub mod mod_authors;
+pub mod mod_media;
 pub mod mod_releases;
 pub mod mods;
 pub mod passkeys;
+pub mod sea_orm_active_enums;
 pub mod users;

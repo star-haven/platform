@@ -12,6 +12,9 @@ mod cookie;
 #[cfg(feature = "ssr")]
 pub mod session;
 
+#[cfg(feature = "ssr")]
+pub use token::Scope;
+
 #[server]
 pub async fn logout() -> Result<(), ServerFnError> {
     session().logout();
@@ -19,7 +22,7 @@ pub async fn logout() -> Result<(), ServerFnError> {
 }
 
 #[server]
-async fn is_logged_in() -> Result<bool, ServerFnError> {
+pub async fn is_logged_in() -> Result<bool, ServerFnError> {
     Ok(session().is_logged_in())
 }
 
@@ -41,9 +44,9 @@ pub fn AuthPage() -> impl IntoView {
         <Shell>
             <div class="flex items-center justify-center min-h-screen">
                 <div class="max-w-sm w-full p-8 lg:p-16 bg-stone-100 crumpled-paper shadow-md">
-                    <h1 class="text-4xl font-black text-stone-600 mb-5">"welcome!!"</h1>
+                    <h1 class="text-4xl font-black text-stone-600 mb-5">"Welcome!"</h1>
                     <p class="text-stone-400 text-sm mb-7">
-                        "enter your username to sign in or sign up."
+                        "Enter your username to sign in or sign up."
                     </p>
 
                     <Suspense fallback=|| {}>
@@ -60,7 +63,7 @@ pub fn AuthPage() -> impl IntoView {
                                                 window().location().reload().expect("failed to reload page");
                                             });
                                         }>
-                                            "sign out"
+                                            "Sign out"
                                         </button>
                                     }
                                 }>
@@ -192,10 +195,10 @@ fn LoginForm() -> impl IntoView {
     });
 
     view! {
-        <noscript>"please enable JavaScript to authenticate."</noscript>
+        <noscript>"Please enable JavaScript to authenticate."</noscript>
 
         <div>
-            <input type="text" autocomplete="username webauthn" autofocus maxlength=20 placeholder="username" bind:value=username on:change={move |_| {
+            <input type="text" autocomplete="username webauthn" autofocus maxlength=20 placeholder="Username" bind:value=username on:change={move |_| {
                 if username.get().is_empty() {
                     username_error.set(None);
                 }
@@ -217,7 +220,7 @@ fn LoginForm() -> impl IntoView {
                 disabled={move || username.get().is_empty() || username_error.get().is_some()}
             >
                 <img src="/FIDO_Passkey_mark_A_white.svg" class="w-6 h-6" />
-                "continue with passkey"
+                "Continue with passkey"
             </button>
         </div>
 
@@ -232,15 +235,15 @@ fn LoginForm() -> impl IntoView {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
 enum UsernameValidationError {
-    #[error("too short, must be at least 4 characters")]
+    #[error("Too short, must be at least 4 characters")]
     TooShort,
-    #[error("too long, must be at most 20 characters")]
+    #[error("Too long, must be at most 20 characters")]
     TooLong,
-    #[error("letters, numbers, underscores, and hyphens only")]
+    #[error("Letters, numbers, underscores, and hyphens only")]
     InvalidCharacters,
-    #[error("must start and end with a letter or number")]
+    #[error("Must start and end with a letter or number")]
     InvalidStartOrEnd,
-    #[error("this username is not allowed")]
+    #[error("This username is not allowed")]
     Banned,
 }
 

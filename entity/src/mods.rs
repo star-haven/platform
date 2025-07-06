@@ -14,6 +14,7 @@ pub struct Model {
     pub description: String,
     pub game_id: Uuid,
     pub published_at: Option<TimeDateTimeWithTimeZone>,
+    pub thumbnail_url: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -28,6 +29,8 @@ pub enum Relation {
     Games,
     #[sea_orm(has_many = "super::mod_authors::Entity")]
     ModAuthors,
+    #[sea_orm(has_many = "super::mod_media::Entity")]
+    ModMedia,
     #[sea_orm(has_many = "super::mod_releases::Entity")]
     ModReleases,
 }
@@ -41,6 +44,12 @@ impl Related<super::games::Entity> for Entity {
 impl Related<super::mod_authors::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::ModAuthors.def()
+    }
+}
+
+impl Related<super::mod_media::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ModMedia.def()
     }
 }
 

@@ -10,7 +10,7 @@ pub fn Nav() -> impl IntoView {
             <ul class="flex flex-col gap-2 h-full">
                 <NavItem href="/">"Star Haven"</NavItem>
                 <NavItem href="/browse">"browse"</NavItem>
-                <NavItem href="https://docs.starhaven.dev/">"create"</NavItem>
+                <NavItem href="/create">"create"</NavItem>
                 <NavItem href="https://discord.com/invite/star-haven">"community"</NavItem>
                 <NavItem href="/about">"about"</NavItem>
                 <li class="mt-auto">

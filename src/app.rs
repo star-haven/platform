@@ -40,7 +40,8 @@ pub fn App() -> impl IntoView {
             <Routes fallback=|| "Page not found.".into_view()>
                 <Route path=path!("/") view=HomePage />
                 <Route path=path!("/browse") view=HomePage />
-                <Route path=path!("/create") view=HomePage />
+                <Route path=path!("/create") view=crate::create::DashboardPage />
+                <Route path=path!("/create/new") view=crate::create::NewModPage  />
                 <Route path=path!("/community") view=HomePage />
                 <Route path=path!("/about") view=HomePage />
                 <Route path=path!("/auth") view=crate::auth::AuthPage />

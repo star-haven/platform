@@ -42,7 +42,7 @@ impl Session {
     }
 
     pub fn login(&mut self, user: &User) -> Result<(), jsonwebtoken::errors::Error> {
-        let claims = Claims::new(user.id, [], [Service::StarHavenPlatform], SESSION_LENGTH_SECONDS);
+        let claims = Claims::new(user.id, [Scope::CreateMod, Scope::PublishMod], [Service::StarHavenPlatform], SESSION_LENGTH_SECONDS);
         set_cookie("session", &claims.encode()?, SESSION_LENGTH_SECONDS);
         self.claims = Some(claims);
         Ok(())

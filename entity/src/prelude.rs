@@ -2,6 +2,7 @@
 
 pub use super::games::Entity as Games;
 pub use super::mod_authors::Entity as ModAuthors;
+pub use super::mod_media::Entity as ModMedia;
 pub use super::mod_releases::Entity as ModReleases;
 pub use super::mods::Entity as Mods;
 pub use super::passkeys::Entity as Passkeys;

@@ -4,6 +4,7 @@ mod m20250623_153441_create_users;
 mod m20250624_165444_passkeys;
 mod m20250705_185912_mods;
 mod m20250706_115515_games;
+mod m20250706_123338_mod_media;
 
 pub struct Migrator;
 
@@ -15,6 +16,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250624_165444_passkeys::Migration),
             Box::new(m20250705_185912_mods::Migration),
             Box::new(m20250706_115515_games::Migration),
+            Box::new(m20250706_123338_mod_media::Migration),
         ]
     }
 }
