@@ -11,6 +11,8 @@ pub struct Model {
     pub name: String,
     pub console_name: String,
     pub year: i32,
+    #[sea_orm(unique)]
+    pub slug: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
