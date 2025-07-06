@@ -45,6 +45,7 @@ pub fn App() -> impl IntoView {
                 <Route path=path!("/community") view=HomePage />
                 <Route path=path!("/about") view=HomePage />
                 <Route path=path!("/auth") view=crate::auth::AuthPage />
+                <Route path=path!("/mod/:slug") view=crate::browse::ModPage/>
             </Routes>
         </Router>
     }

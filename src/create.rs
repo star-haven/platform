@@ -7,36 +7,38 @@ pub fn DashboardPage() -> impl IntoView {
     let mods = OnceResource::new_blocking(session_mods());
     view! {
         <Shell>
-            <a href="https://docs.starhaven.dev/">Learn to create mods</a>
+            <div class="w-full max-w-screen-lg mx-auto my-8">
+                <a href="https://docs.starhaven.dev/">Learn to create mods</a>
 
-            <Suspense fallback=|| {}>
-                {move || match mods.get() {
-                    Some(Ok(Some(mods))) => view! {
-                        <h3>Your mods</h3>
-                        <ul class="grid grid-cols-4 gap-4 my-4">
-                            <For
-                                each=move || mods.clone()
-                                key=|el| el.id
-                                children=move |el| {
-                                    view! {
-                                        <li class="flex aspect-video bg-stone-800">
-                                            <a href=format!("/mod/{}", el.slug) class="w-full h-full">
-                                                <span class="sr-only">{el.name}</span>
-                                            </a>
-                                        </li>
+                <Suspense fallback=|| {}>
+                    {move || match mods.get() {
+                        Some(Ok(Some(mods))) => view! {
+                            <h3>Your mods</h3>
+                            <ul class="grid grid-cols-4 gap-4 my-4">
+                                <For
+                                    each=move || mods.clone()
+                                    key=|el| el.id
+                                    children=move |el| {
+                                        view! {
+                                            <li class="flex aspect-video bg-stone-800">
+                                                <a href=format!("/mod/{}", el.slug) class="w-full h-full">
+                                                    <span class="sr-only">{el.name}</span>
+                                                </a>
+                                            </li>
+                                        }
                                     }
-                                }
-                            />
-                        </ul>
-                        <LinkButton href="/create/new">Create a new mod</LinkButton>
-                    }.into_any(),
-                    Some(Err(error)) => view! {
-                        <h3>Your mods</h3>
-                        <p>Error loading mods: {error.to_string()}</p>
-                    }.into_any(),
-                    None | Some(Ok(None)) => view! {}.into_any(),
-                }}
-            </Suspense>
+                                />
+                            </ul>
+                            <LinkButton href="/create/new">Create a new mod</LinkButton>
+                        }.into_any(),
+                        Some(Err(error)) => view! {
+                            <h3>Your mods</h3>
+                            <p>Error loading mods: {error.to_string()}</p>
+                        }.into_any(),
+                        None | Some(Ok(None)) => view! {}.into_any(),
+                    }}
+                </Suspense>
+            </div>
         </Shell>
     }
 }

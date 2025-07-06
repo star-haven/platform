@@ -3,6 +3,7 @@ pub mod auth;
 pub mod prelude;
 pub mod shell;
 pub mod create;
+pub mod browse;
 
 #[cfg(feature = "hydrate")]
 use wasm_bindgen::prelude::wasm_bindgen;
