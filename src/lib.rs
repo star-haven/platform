@@ -17,3 +17,9 @@ pub fn hydrate() {
     console_error_panic_hook::set_once();
     leptos::mount::hydrate_body(App);
 }
+
+#[cfg(feature = "ssr")]
+pub fn static_assets_dir() -> std::path::PathBuf {
+    let proj_dirs = directories::ProjectDirs::from("dev", "Star Haven", "Star Haven Platform").unwrap();
+    proj_dirs.data_dir().to_path_buf()
+}

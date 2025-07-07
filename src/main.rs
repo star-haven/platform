@@ -33,6 +33,7 @@ async fn main() {
                 move || shell(leptos_options.clone())
             }
         )
+        .nest_service("/assets", tower_http::services::ServeDir::new(star_haven_platform::static_assets_dir()))
         .fallback(leptos_axum::file_and_error_handler(shell))
         .with_state(leptos_options);
 

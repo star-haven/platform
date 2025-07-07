@@ -39,6 +39,8 @@ pub enum Scope {
     CreateMod,
     /// Can publish mods that they have created
     PublishMod,
+    /// Is treated as an author of all mods (can view, edit, delete, etc.)
+    AdminAuthorAllMods,
     #[serde(other)]
     Unknown,
 }

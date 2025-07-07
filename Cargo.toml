@@ -26,6 +26,7 @@ leptos = { version = "0.8", features = ["nightly"] }
 leptos_axum = { version = "0.8", optional = true }
 leptos_meta = { version = "0.8" }
 leptos_router = { version = "0.8" }
+server_fn = { version = "0.8", features = ["multipart"] }
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -36,13 +37,16 @@ jsonwebtoken = { version = "9", optional = true }
 uuid = { version = "1", features = ["serde", "v4"] }
 femme = { version = "2", optional = true }
 sea-orm = { version = "1.1", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros", "with-uuid", "with-time" ], default-features = false, optional= true }
-time = { version = "0.3", features = [ "serde", "macros" ] }
+time = { version = "0.3", features = [ "serde", "macros", "formatting" ] }
 webauthn-rs = { version = "0.5", features = [ "conditional-ui" ], optional = true }
 webauthn-rs-proto = "0.5"
 anyhow = { version = "1", features = ["std"] }
 thiserror = "2"
 js-sys = { version = "0.3", optional = true }
 phosphor-leptos = "0.8"
+image = { version = "0.25", optional = true }
+directories = { version = "6", optional = true }
+tower-http = { version = "0.5.0", features = ["fs"], optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -67,6 +71,7 @@ hydrate = [
     "dep:entity",
     "uuid/js",
     "webauthn-rs-proto/wasm",
+    "time/wasm-bindgen",
 ]
 ssr = [
     "dep:axum-macros",
@@ -80,6 +85,9 @@ ssr = [
     "dep:entity",
     "dep:migration",
     "dep:webauthn-rs",
+    "dep:image",
+    "dep:directories",
+    "dep:tower-http",
     "leptos_meta/ssr",
     "leptos_router/ssr",
     "leptos/ssr",
