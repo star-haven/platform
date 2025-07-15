@@ -4,6 +4,9 @@ use leptos::Params;
 use leptos_router::{hooks::{query_signal, use_params}, params::Params};
 
 mod media;
+mod shop;
+
+pub use shop::ShopPage;
 
 #[derive(Params, PartialEq)]
 struct ModPageParams {
@@ -77,7 +80,7 @@ async fn get_mod_by_slug(slug: String) -> Result<(Mod, bool), ServerFnError> {
 
     let Some(ret) = Mods::find()
         .filter(entity::mods::Column::Slug.eq(slug))
-        .join(JoinType::InnerJoin, entity::mods::Relation::ModAuthors.def())
+        .join(JoinType::LeftJoin, entity::mods::Relation::ModAuthors.def())
         .filter(condition)
         .one(&db())
         .await?
@@ -253,8 +256,13 @@ pub fn LocaleDate(date: Signal<OffsetDateTime>) -> impl IntoView {
     Effect::new(move |_| {
         #[cfg(feature = "hydrate")]
         if let Some(el) = node_ref.get() {
+            let lang = web_sys::window()
+                .unwrap()
+                .navigator()
+                .language()
+                .unwrap();
             let js_date = js_sys::Date::new(&js_sys::JsString::from(rfc3339.get()));
-            let locale_str = js_date.to_locale_date_string("", &wasm_bindgen::JsValue::undefined());
+            let locale_str = js_date.to_locale_date_string(&lang, &wasm_bindgen::JsValue::undefined());
             let locale_str = JsValue::from(locale_str).as_string();
             el.set_text_content(locale_str.as_deref());
         }
